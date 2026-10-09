@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>감정평가사 2차 망각곡선 복습 플래너 v4</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+:root{--primary:#1e3a8a;--primary-light:#3b82f6;--bg:#f8fafc;--card:#fff;--border:#e2e8f0;--text:#0f172a;--text-muted:#64748b;--simmu:#2563eb;--yiron:#d97706;--beopgyu:#16a34a;--danger:#dc2626}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+body{background:var(--bg);color:var(--text);padding:20px;line-height:1.5}
+.container{max-width:1240px;margin:0 auto}
+header{margin-bottom:16px;border-bottom:2px solid var(--primary);padding-bottom:10px}
+.header-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.badge{display:inline-block;background:var(--primary);color:#fff;font-size:11px;font-weight:700;padding:3px 8px;border-radius:4px}
+h1{font-size:22px;font-weight:800;margin-top:4px}
+p.desc{font-size:12.5px;color:var(--text-muted)}
+.exam-box{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:6px 10px}
+.exam-box input{width:auto;margin:0;padding:3px 6px;font-size:12px}
+.exam-box b{color:#c2410c;font-size:14px}
+
+/* 상시 알림 바 */
+.alert-bar{position:sticky;top:0;z-index:60;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.alert-bar.danger{background:var(--danger);color:#fff;animation:pulse 2.2s infinite}
+.alert-bar.warn{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.alert-bar.ok{background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
+.alert-bar button{background:#fff;color:var(--danger);border:none;border-radius:6px;padding:5px 10px;font-weight:700;cursor:pointer;font-size:12px}
+.alert-bar.warn button{color:#92400e;border:1px solid #fde68a}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.5)}50%{box-shadow:0 0 0 6px rgba(220,38,38,0)}}
+@media(prefers-reduced-motion:reduce){.alert-bar.danger{animation:none}}
+
+.sync-panel{background:#fff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.sync-status{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600}
+.sync-dot{width:10px;height:10px;border-radius:50%;background:#94a3b8;display:inline-block}
+.sync-dot.connected{background:#22c55e}
+.sync-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.btn-sync{background:#f1f5f9;border:1px solid #cbd5e1;color:#334155;padding:5px 10px;border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:4px}
+.btn-sync:hover{background:#e2e8f0}
+.btn-sync.primary{background:#2563eb;color:#fff;border-color:#1d4ed8}
+.btn-sync.pdf-btn{background:#0f172a;color:#fff;border-color:#0f172a}
+.btn-sync.danger{background:var(--danger);color:#fff;border-color:#b91c1c}
+
+.dashboard{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+@media(max-width:900px){.dashboard{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:500px){.dashboard{grid-template-columns:1fr}}
+.stat-card{background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+.stat-card.alert{border-color:#fecaca;background:#fef2f2}
+.stat-label{font-size:11.5px;font-weight:700;color:var(--text-muted);display:flex;justify-content:space-between}
+.stat-value{font-size:20px;font-weight:800;margin:4px 0 6px}
+.stat-value span{font-size:12px;font-weight:500;color:var(--text-muted);margin-left:2px}
+.progress-bg{width:100%;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:var(--primary-light);border-radius:3px;transition:width .3s}
+.tab-nav{display:flex;gap:8px;margin:16px 0 14px;border-bottom:1px solid var(--border);padding-bottom:8px}
+.tab-btn{background:transparent;border:none;font-size:14px;font-weight:700;color:var(--text-muted);padding:6px 14px;border-radius:6px;cursor:pointer}
+.tab-btn.active{background:var(--primary);color:#fff}
+.tab-content{display:none}.tab-content.active{display:block}
+.grid{display:grid;grid-template-columns:340px 1fr;gap:16px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px}
+.card-title{font-size:14.5px;font-weight:700;color:var(--primary);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+label{display:block;font-size:11.5px;font-weight:600;color:var(--text-muted);margin-bottom:4px}
+input,select,textarea{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;margin-bottom:12px;outline:none}
+input:focus,select:focus{border-color:var(--primary-light)}
+
+/* 서식 편집기 */
+.rte-bar{display:flex;gap:4px;align-items:center;margin-bottom:4px;flex-wrap:wrap}
+.rte-bar button{border:1px solid #cbd5e1;background:#f8fafc;border-radius:4px;min-width:26px;height:26px;font-size:12px;cursor:pointer;padding:0 6px}
+.rte-bar .dot{width:20px;height:20px;min-width:20px;border-radius:50%;padding:0;border:2px solid #fff;box-shadow:0 0 0 1px #cbd5e1}
+.rte{min-height:90px;max-height:240px;overflow:auto;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12.5px;margin-bottom:12px;white-space:pre-wrap;word-break:break-word;outline:none;background:#fff}
+.rte:focus{border-color:var(--primary-light)}
+.rte:empty:before{content:attr(data-ph);color:#94a3b8}
+button.btn-primary{width:100%;background:var(--primary);color:#fff;border:none;padding:10px;border-radius:6px;font-weight:700;font-size:13.5px;cursor:pointer}
+button.btn-primary:hover{background:#172554}
+
+/* 밀린 복습 / 오늘 복습 */
+.od-box{background:#fef2f2;border-left:4px solid var(--danger);padding:12px 14px;border-radius:0 8px 8px 0;margin-bottom:14px}
+.od-title{font-size:14px;font-weight:800;color:#991b1b;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.od-actions{display:flex;gap:6px;flex-wrap:wrap}
+.cap-warn{font-size:11.5px;color:#9a3412;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:6px 10px;margin-bottom:8px}
+.today-box{background:#eff6ff;border-left:4px solid var(--primary-light);padding:12px 14px;border-radius:0 8px 8px 0;margin-bottom:16px}
+.today-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.today-title{font-size:13.5px;font-weight:700;color:var(--primary)}
+.today-head select{width:auto;margin:0;padding:3px 6px;font-size:11px}
+.prog-line{display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;color:#475569;margin-bottom:8px}
+.prog-line .progress-bg{flex:1}
+.today-list{list-style:none;display:flex;flex-direction:column;gap:6px}
+.today-item{font-size:12.5px;background:#fff;padding:8px 12px;border-radius:6px;border:1px solid #bfdbfe;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.od-box .today-item{border-color:#fecaca}
+.today-item.done{background:#f1f5f9;opacity:.75}
+.today-item.done .ti-main{text-decoration:line-through}
+.ti-main{flex:1;min-width:220px}
+.ti-btns{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.late{background:var(--danger);color:#fff;font-size:10.5px;font-weight:800;padding:1px 6px;border-radius:10px}
+.bed{background:#312e81;color:#fff;font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:10px}
+.stars{color:#f59e0b;font-size:11px;letter-spacing:-1px}
+.tip{font-size:11px;color:#64748b;margin-top:3px}
+details.memo-d{margin-top:4px}
+details.memo-d summary{font-size:11px;color:#2563eb;cursor:pointer;font-weight:600}
+.memo-in{font-size:11.5px;color:#475569;margin-top:3px;padding-left:6px;border-left:2px solid #bfdbfe;white-space:pre-wrap;word-break:break-word;line-height:1.45}
+.rbtn{font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:5px;border:1px solid;cursor:pointer;background:#fff}
+.rbtn.r-good{color:#166534;border-color:#86efac;background:#f0fdf4}
+.rbtn.r-fuzzy{color:#92400e;border-color:#fcd34d;background:#fffbeb}
+.rbtn.r-forgot{color:#991b1b;border-color:#fca5a5;background:#fef2f2}
+.rbtn.plain{color:#334155;border-color:#cbd5e1}
+.rtag{font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px}
+.rtag.r-good{background:#dcfce7;color:#166534}.rtag.r-fuzzy{background:#fef3c7;color:#92400e}.rtag.r-forgot{background:#fee2e2;color:#991b1b}
+
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px;text-align:left}
+th,td{padding:9px 7px;border-bottom:1px solid var(--border);vertical-align:middle}
+th{background:#f1f5f9;font-weight:700;color:#334155;font-size:11px;text-align:center}
+td.center{text-align:center}
+.tag{padding:2px 6px;border-radius:3px;font-weight:700;font-size:11px}
+.tag-실무{background:#dbeafe;color:var(--simmu)}.tag-이론{background:#fef3c7;color:var(--yiron)}.tag-법규{background:#dcfce7;color:var(--beopgyu)}
+.step-check{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:var(--text-muted);cursor:pointer}
+.step-check input{margin:0;cursor:pointer;width:auto}
+.chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;min-width:240px}
+.chip{min-width:42px;text-align:center;line-height:1.2;border:1px solid #e2e8f0;border-radius:5px;padding:3px 4px;background:#fafafa;cursor:pointer;font-size:10.5px;color:#475569;font-weight:600}
+.chip small{display:block;font-size:9.5px;color:#64748b;font-weight:400}
+.chip.ex{background:#fff7ed;border-color:#fed7aa}
+.chip.td{background:#dbeafe;border-color:#60a5fa;color:#1e3a8a}
+.chip.od{background:#fee2e2;border-color:#f87171;color:#991b1b}
+.chip.done{background:#dcfce7;border-color:#86efac;color:#166534}
+.chip.done.r-fuzzy{background:#fef3c7;border-color:#fcd34d;color:#92400e}
+.chip.done.r-forgot{background:#ffe4e6;border-color:#fda4af;color:#9f1239}
+.action-btns{display:flex;gap:4px;justify-content:center}
+.edit-btn{background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;border-radius:4px;cursor:pointer;font-size:11px;padding:3px 6px;font-weight:600}
+.delete-btn{background:#fee2e2;color:#dc2626;border:1px solid #fecaca;border-radius:4px;cursor:pointer;font-size:11px;padding:3px 6px;font-weight:600}
+.cell-topic{font-weight:600;margin-bottom:3px;white-space:pre-wrap;word-break:break-word}
+.cell-memo{font-size:11px;color:#475569;background:#f8fafc;border:1px dashed #cbd5e1;padding:6px 8px;border-radius:4px;display:block;width:100%;white-space:pre-wrap;word-break:break-word;line-height:1.45}
+.cell-target{font-size:10.5px;color:#64748b;margin-top:2px}
+.master-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:900px){.master-grid{grid-template-columns:1fr}}
+.master-card{background:#fff;border:1px solid var(--border);border-top:3.5px solid var(--primary);border-radius:8px;padding:14px}
+.master-card.simmu{border-top-color:var(--simmu)}.master-card.yiron{border-top-color:var(--yiron)}.master-card.beopgyu{border-top-color:var(--beopgyu)}
+.master-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.master-title{font-size:15px;font-weight:800}
+.master-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+.master-item{border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px;font-size:12px;background:#fafafa}
+.master-item-title{font-weight:700;color:#1e293b;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.master-item-memo{font-size:11px;color:#475569;margin-bottom:4px;border-left:2px solid #cbd5e1;padding-left:6px;white-space:pre-wrap;word-break:break-word;line-height:1.4}
+.master-badges{display:flex;gap:4px;font-size:10px;font-weight:600;align-items:center;flex-wrap:wrap}
+.mbadge{padding:1px 5px;border-radius:3px;background:#e2e8f0;color:#475569}
+.mbadge.active{background:#bfdbfe;color:#1e40af}.mbadge.deleted{background:#fee2e2;color:#991b1b}
+.mbadge.r-fuzzy{background:#fde68a;color:#92400e}.mbadge.r-forgot{background:#fecaca;color:#991b1b}
+.mbadge.od{background:#dc2626;color:#fff}
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,.6);z-index:1000;justify-content:center;align-items:center;padding:16px;overflow:auto}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:540px;padding:22px;max-height:95vh;overflow:auto}
+.set-row{margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #f1f5f9}
+.set-row p{font-size:11.5px;color:#64748b;margin:2px 0 8px}
+.print-header-info{display:none}
+@media print{
+@page{size:A4 portrait;margin:12mm 10mm}
+body{background:#fff!important;padding:0!important;font-size:9pt}
+.container{max-width:100%!important}
+.sync-panel,.tab-nav,.today-box,.od-box,.alert-bar,.action-btns,.modal-overlay,button,select,.badge,#studyForm,.card:has(#studyForm),.exam-box input,.rte-bar{display:none!important}
+.print-header-info{display:block!important;font-size:8.5pt;text-align:right;margin-bottom:10px}
+.grid{display:block!important}
+.card{border:1px solid #cbd5e1!important;padding:8px!important;margin-bottom:12px!important}
+body.print-tab-daily #tab-master{display:none!important}
+body.print-tab-master #tab-daily{display:none!important}
+body.print-tab-all #tab-daily,body.print-tab-daily #tab-daily,body.print-tab-master #tab-master{display:block!important}
+body.print-tab-all #tab-master{display:block!important;page-break-before:always}
+table{font-size:8pt!important}
+th,td{border:1px solid #94a3b8!important;padding:5px 6px!important}
+.chips{min-width:0}
+.master-card,.master-item,.dashboard{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <div class="header-top">
+    <div>
+      <span class="badge">KAPA Spaced Repetition v4.4</span>
+      <h1>감정평가사 2차 망각곡선 & 단권화 마스터 대시보드</h1>
+    </div>
+    <div class="exam-box">🎯 시험일 <input type="date" id="examDate" onchange="changeExamDate()"> <b id="dday"></b></div>
+  </div>
+  <p class="desc">밀린 복습 끝까지 알림 · 기억남/애매/망각 자가평가로 간격 자동 조정 · 시험일 기준 장기 스케줄 · PDF/인쇄</p>
+  <div class="print-header-info" id="printHeaderInfo"></div>
+</header>
+
+<div class="alert-bar ok" id="alertBar" style="display:none"></div>
+
+<div class="sync-panel">
+  <div class="sync-status"><span class="sync-dot" id="syncDot"></span><span id="syncText">동기화 상태 확인 중...</span></div>
+  <div class="sync-actions">
+    <button class="btn-sync" onclick="openSettings()">🔔 알림·설정</button>
+    <button class="btn-sync pdf-btn" onclick="openPdfModal()">📄 PDF / 인쇄 출력</button>
+    <button class="btn-sync" onclick="openSyncModal()">⚙️ 구글 연동 설정</button>
+    <button class="btn-sync primary" onclick="manualSync()" id="syncBtn">🔄 지금 동기화</button>
+    <button class="btn-sync" onclick="exportJSON()">💾 백업 저장</button>
+    <button class="btn-sync" onclick="document.getElementById('importFile').click()">📂 백업 불러오기</button>
+    <input type="file" id="importFile" style="display:none;" onchange="importJSON(event)">
+  </div>
+</div>
+
+<div class="dashboard">
+  <div class="stat-card"><div class="stat-label">전체 등록 논점 <span id="statTotal">0개</span></div><div class="stat-value" id="statTotalValue">0<span>개</span></div><div class="progress-bg"><div class="progress-fill" style="width:100%;background:#94a3b8"></div></div></div>
+  <div class="stat-card"><div class="stat-label">실무 진행 & 소거율 <span id="statSimmuPercent">0%</span></div><div class="stat-value" id="statSimmuValue">0<span>/0개</span></div><div class="progress-bg"><div class="progress-fill" id="barSimmu" style="width:0%;background:var(--simmu)"></div></div></div>
+  <div class="stat-card"><div class="stat-label">이론 진행 & 소거율 <span id="statYironPercent">0%</span></div><div class="stat-value" id="statYironValue">0<span>/0개</span></div><div class="progress-bg"><div class="progress-fill" id="barYiron" style="width:0%;background:var(--yiron)"></div></div></div>
+  <div class="stat-card"><div class="stat-label">법규 진행 & 소거율 <span id="statBeopgyuPercent">0%</span></div><div class="stat-value" id="statBeopgyuValue">0<span>/0개</span></div><div class="progress-bg"><div class="progress-fill" id="barBeopgyu" style="width:0%;background:var(--beopgyu)"></div></div></div>
+</div>
+<div class="dashboard">
+  <div class="stat-card"><div class="stat-label">오늘 복습 완료율 <span id="statRatePct">-</span></div><div class="stat-value" id="statRateValue">0<span>/0개</span></div><div class="progress-bg"><div class="progress-fill" id="barRate" style="width:0%"></div></div></div>
+  <div class="stat-card"><div class="stat-label">연속 달성일 🔥</div><div class="stat-value" id="statStreak">0<span>일</span></div><div class="progress-bg"><div class="progress-fill" style="width:100%;background:#f59e0b"></div></div></div>
+  <div class="stat-card" id="cardOverdue"><div class="stat-label">밀린 복습 <span id="statOdHint"></span></div><div class="stat-value" id="statOverdue">0<span>개</span></div><div class="progress-bg"><div class="progress-fill" id="barOd" style="width:0%;background:var(--danger)"></div></div></div>
+  <div class="stat-card"><div class="stat-label">약점 논점 (애매/망각) <span id="statWeakHint"></span></div><div class="stat-value" id="statWeak">0<span>개</span></div><div class="progress-bg"><div class="progress-fill" id="barWeak" style="width:0%;background:#f59e0b"></div></div></div>
+</div>
+
+<div class="tab-nav">
+  <button class="tab-btn active" id="btnTabDaily" onclick="switchTab('tab-daily',this)">📅 일일 주기 복습 트래커</button>
+  <button class="tab-btn" id="btnTabMaster" onclick="switchTab('tab-master',this)">📊 과목별 진도표 & 단권화 현황</button>
+</div>
+
+<div id="tab-daily" class="tab-content active">
+  <div class="od-box" id="odBox" style="display:none">
+    <div class="od-title"><span id="odTitle"></span>
+      <div class="od-actions">
+        <button class="btn-sync" onclick="reschedule('today')">전부 오늘로</button>
+        <button class="btn-sync primary" onclick="reschedule('spread')">하루 목표량으로 분산</button>
+      </div>
+    </div>
+    <div class="cap-warn" id="capWarn" style="display:none"></div>
+    <ul class="today-list" id="odList"></ul>
+  </div>
+  <div class="today-box" id="todayBox">
+    <div class="today-head">
+      <div class="today-title">📌 오늘 (<span id="todayDate"></span>) 복습해야 할 태스크</div>
+      <select id="todayFilter" onchange="renderToday()"><option value="ALL">전체 과목</option><option value="실무">실무만</option><option value="이론">이론만</option><option value="법규">법규만</option></select>
+    </div>
+    <div class="prog-line"><span id="todayProg">0/0</span><div class="progress-bg"><div class="progress-fill" id="todayBar" style="width:0%;background:#22c55e"></div></div></div>
+    <ul class="today-list" id="todayTaskList"></ul>
+  </div>
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">오늘 공부한 진도 등록</div>
+      <form id="studyForm">
+        <label>공부한 날짜</label><input type="date" id="studyDate" required>
+        <label>과목 선택</label>
+        <select id="subject" required>
+          <option value="실무">감정평가실무 (계산·산식)</option>
+          <option value="이론">감정평가이론 (체계·논리)</option>
+          <option value="법규">감정평가및보상법규 (조문·판례)</option>
+        </select>
+        <label>난이도 (어려울수록 초반 복습이 촘촘해집니다)</label>
+        <select id="difficulty">
+          <option value="1">★ 쉬움</option>
+          <option value="2" selected>★★ 보통</option>
+          <option value="3">★★★ 어려움 (+2일, +10일 추가)</option>
+        </select>
+        <label>① 학습 내용 / 대단원·논점</label>
+        <input type="text" id="topic" placeholder="예: 영업손실보상 영업이익 산정" required>
+        <label>② 단권화 메모 (글자를 드래그한 뒤 굵게/색 적용)</label>
+        <div class="rte-bar" data-for="monographMemo"></div>
+        <div class="rte" id="monographMemo" contenteditable="true" data-ph="1. 고정비 감가상각비 누락 조심&#10;2. 최근 3개년 가중평균 확인"></div>
+        <label>단권화 대상 교재 (서브 / 문제집)</label>
+        <input type="text" id="targetBook" placeholder="예: 기출 100점 서브 p.142">
+        <button type="submit" class="btn-primary">+ 주기 복습 일정 자동 생성</button>
+      </form>
+    </div>
+    <div class="card">
+      <div class="card-title">
+        <span>누적 복습 & 삭제식 단권화 트래커</span>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <select id="filterSubject" onchange="renderTable()" style="margin:0;padding:3px 6px;font-size:11px;width:auto;">
+            <option value="ALL">전체 보기</option><option value="실무">실무만</option><option value="이론">이론만</option><option value="법규">법규만</option><option value="WEAK">🎯 약점만 (애매/망각)</option><option value="OVERDUE">🚨 밀린 것만</option>
+          </select>
+          <button id="clearAll" style="font-size:11px;background:none;border:none;color:#94a3b8;cursor:pointer;">초기화</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:60px">진도일</th><th style="width:50px">과목</th><th style="width:140px">학습 내용</th><th>단권화 메모</th>
+            <th>복습 단계 (칸을 눌러 완료·평가 / 파랑=오늘 · 빨강=밀림 · 초록=완료)</th><th style="width:44px">소거</th><th style="width:75px">관리</th>
+          </tr></thead>
+          <tbody id="trackerBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tab-master" class="tab-content">
+  <div class="master-grid">
+    <div class="master-card simmu"><div class="master-header"><span class="master-title" style="color:var(--simmu)">감정평가실무</span><span class="tag tag-실무" id="badgeSimmuCount">0개</span></div><ul class="master-list" id="masterSimmuList"></ul></div>
+    <div class="master-card yiron"><div class="master-header"><span class="master-title" style="color:var(--yiron)">감정평가이론</span><span class="tag tag-이론" id="badgeYironCount">0개</span></div><ul class="master-list" id="masterYironList"></ul></div>
+    <div class="master-card beopgyu"><div class="master-header"><span class="master-title" style="color:var(--beopgyu)">감정평가및보상법규</span><span class="tag tag-법규" id="badgeBeopgyuCount">0개</span></div><ul class="master-list" id="masterBeopgyuList"></ul></div>
+  </div>
+</div>
+</div>
+
+<!-- 복습 결과 평가 -->
+<div class="modal-overlay" id="rateModal"><div class="modal" style="max-width:380px;">
+  <div class="card-title" style="font-size:15px">복습 결과는 어땠나요?</div>
+  <div id="rateInfo" style="font-size:12.5px;margin-bottom:12px;color:#334155"></div>
+  <input type="hidden" id="rateId"><input type="hidden" id="rateK">
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <button class="rbtn r-good" style="padding:10px" onclick="rateChoose('good')">😀 기억남 — 다음 간격 그대로</button>
+    <button class="rbtn r-fuzzy" style="padding:10px" onclick="rateChoose('fuzzy')">🤔 애매 — 다음 간격 단축 (60%)</button>
+    <button class="rbtn r-forgot" style="padding:10px" onclick="rateChoose('forgot')">😵 망각 — 내일 다시 복습</button>
+  </div>
+  <div style="text-align:right;margin-top:12px"><button class="btn-sync" style="display:inline-flex" onclick="closeRate()">취소</button></div>
+</div></div>
+
+<!-- 아침 브리핑 -->
+<div class="modal-overlay" id="briefModal"><div class="modal" style="max-width:380px;">
+  <div class="card-title" style="font-size:16px">☀️ 오늘의 복습 브리핑</div>
+  <div id="briefBody" style="font-size:13.5px;line-height:1.8;margin-bottom:16px"></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end">
+    <button class="btn-sync" onclick="closeBrief()">나중에</button>
+    <button class="btn-sync danger" onclick="closeBrief();goReview()">지금 시작</button>
+  </div>
+</div></div>
+
+<!-- 설정 -->
+<div class="modal-overlay" id="settingsModal"><div class="modal">
+  <div class="card-title" style="font-size:16px">🔔 알림 · 설정</div>
+  <div class="set-row">
+    <label>하루 복습 처리 목표량 (개)</label>
+    <input type="number" id="capInput" min="5" max="200" style="margin-bottom:4px">
+    <p>밀린 복습 분산 재배치와 "목표량 초과" 경고에 쓰입니다.</p>
+  </div>
+  <div class="set-row">
+    <label>브라우저 알림</label>
+    <p id="notifState"></p>
+    <button class="btn-sync" onclick="requestNotify()">🔔 알림 허용하기</button>
+    <p style="margin-top:8px">앱(탭)이 열려 있는 동안 밀린 복습이 있으면 약 40분마다 계속 알려줍니다. 앱이 닫혀 있을 때는 아래 캘린더 알림을 쓰세요.</p>
+  </div>
+  <div class="set-row">
+    <label>캘린더 반복 알림 (.ics)</label>
+    <p>다운로드 후 구글 캘린더에서 "가져오기"를 하면 시험일까지 매일 두 번 휴대폰 알림이 울립니다.</p>
+    <div style="display:flex;gap:8px"><div style="flex:1"><label>알림 1</label><input type="time" id="ics1" style="margin-bottom:6px"></div><div style="flex:1"><label>알림 2</label><input type="time" id="ics2" style="margin-bottom:6px"></div></div>
+    <button class="btn-sync" onclick="downloadICS()">📅 캘린더 파일 다운로드</button>
+  </div>
+  <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn-sync" onclick="closeSettings()">닫기</button><button class="btn-sync primary" onclick="saveSettings()">저장</button></div>
+</div></div>
+
+<div class="modal-overlay" id="pdfModal"><div class="modal" style="max-width:460px;">
+  <div class="card-title" style="font-size:16px">📄 PDF / 인쇄 출력 옵션</div>
+  <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:18px;">
+    <button class="btn-sync" onclick="executePrint('all')" style="padding:12px">📊 전체 종합 리포트</button>
+    <button class="btn-sync" onclick="executePrint('daily')" style="padding:12px">📅 일일 주기 복습 트래커</button>
+    <button class="btn-sync" onclick="executePrint('master')" style="padding:12px">📑 과목별 단권화 진도상황판</button>
+  </div>
+  <div style="text-align:right"><button class="btn-sync" onclick="closePdfModal()" style="display:inline-flex">닫기</button></div>
+</div></div>
+
+<div class="modal-overlay" id="editModal"><div class="modal">
+  <div class="card-title" style="font-size:16px">✏️ 논점 및 단권화 메모 수정</div>
+  <form id="editForm">
+    <input type="hidden" id="editTaskId">
+    <label>진도 날짜 (바꾸면 미완료 복습일정이 다시 계산됩니다)</label><input type="date" id="editDate" required>
+    <label>과목</label>
+    <select id="editSubject" required><option value="실무">감정평가실무</option><option value="이론">감정평가이론</option><option value="법규">감정평가및보상법규</option></select>
+    <label>난이도</label>
+    <select id="editDifficulty"><option value="1">★ 쉬움</option><option value="2">★★ 보통</option><option value="3">★★★ 어려움</option></select>
+    <label>① 학습 내용 / 대단원·논점</label><input type="text" id="editTopic" required>
+    <label>② 단권화 메모</label>
+    <div class="rte-bar" data-for="editMonographMemo"></div>
+    <div class="rte" id="editMonographMemo" contenteditable="true"></div>
+    <label>단권화 대상 교재</label><input type="text" id="editTargetBook">
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+      <button type="button" class="btn-sync" onclick="closeEditModal()">취소</button>
+      <button type="submit" class="btn-sync primary">수정 완료 및 저장</button>
+    </div>
+  </form>
+</div></div>
+
+<div class="modal-overlay" id="syncModal"><div class="modal">
+  <div class="card-title" style="font-size:16px">🔗 구글 드라이브(시트) 연동 주소 등록</div>
+  <label>구글 Apps Script 웹 앱 URL</label>
+  <input type="url" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;">
+    <button class="btn-sync" onclick="closeSyncModal()">닫기</button>
+    <button class="btn-sync primary" onclick="saveSyncConfig()">저장 및 클라우드 동기화</button>
+  </div>
+</div></div>
+
+<script>
+/* 저장소가 막힌 환경(Apps Script iframe 등)에서도 멈추지 않도록 메모리로 대체 */
+const MEM={};
+function sget(k){try{return localStorage.getItem(k);}catch(e){return MEM[k]===undefined?null:MEM[k];}}
+function sset(k,v){try{localStorage.setItem(k,v);}catch(e){MEM[k]=String(v);}}
+function ssget(k){try{return sessionStorage.getItem(k);}catch(e){return MEM['s_'+k]===undefined?null:MEM['s_'+k];}}
+function ssset(k,v){try{sessionStorage.setItem(k,v);}catch(e){MEM['s_'+k]=String(v);}}
+window.addEventListener('error',e=>{const t=document.getElementById('syncText');if(t)t.innerText='⚠️ 오류: '+e.message;});
+/* Apps Script 안에서 열렸으면 주소 없이 google.script.run으로 직접 통신 */
+const HAS_GAS=!!(window.google&&google.script&&google.script.run);
+function gasCall(fn,arg){return new Promise((res,rej)=>{const r=google.script.run.withSuccessHandler(res).withFailureHandler(e=>rej(e));if(arg===undefined)r[fn]();else r[fn](arg);});}
+const canSync=()=>HAS_GAS||!!syncUrl;
+const viaGAS=()=>HAS_GAS&&!syncUrl;   // 주소가 있으면 주소 방식 우선
+{const t=document.getElementById('syncText');if(t)t.innerText='앱 시작 중 (v4.4)...';}
+
+const STORAGE_KEY='kapa_spaced_repetition_tasks_v3';   // 기존 데이터 키 그대로 (기존 기록 유지)
+const CONFIG_KEY='kapa_sync_config_url';
+const EXAM_KEY='kapa_exam_date';
+const CAP_KEY='kapa_daily_cap';
+const ICS1_KEY='kapa_ics_t1',ICS2_KEY='kapa_ics_t2';
+const NOTIFY_KEY='kapa_last_notify';
+const RICH='§H§';
+const BASE_TITLE=document.title;
+
+let tasks=[];
+try{tasks=JSON.parse(sget(STORAGE_KEY)||'[]');}catch(e){tasks=[];}
+const RAW_URL='<?= scriptUrl ?>';   // Apps Script가 자동으로 앱 주소를 넣어줍니다 (직접 수정 불필요)
+const DEFAULT_SYNC_URL=RAW_URL.indexOf('http')===0?RAW_URL:'';
+let syncUrl=sget(CONFIG_KEY)||DEFAULT_SYNC_URL;
+let examDate=sget(EXAM_KEY)||'2027-07-01';
+let dailyCap=Number(sget(CAP_KEY))||30;
+let ctx={od:[],td:[],dn:[],keyClass:{}};
+let lastDay='';
+let lastPull=0;
+
+/* ===== 날짜 유틸 (모두 로컬 시간 기준) ===== */
+function ymd(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function pd(s){const p=s.split('-').map(Number);return new Date(p[0],p[1]-1,p[2]);}
+function today(){return ymd(new Date());}
+function addDays(base,days){const d=pd(base);d.setDate(d.getDate()+days);const raw=ymd(d);return{raw,formatted:raw.slice(5).replace('-','/')};}
+function diffDays(a,b){return Math.round((pd(a)-pd(b))/864e5);}
+
+/* ===== 복습 단계 정의 =====
+   off: 진도일 기준 일수 / exam: 시험일 기준 / hard: 난이도 ★★★ 전용 / ext: 시험 임박 시 생략 */
+const STEPS=[
+ {k:'step1',off:0,short:'당일',name:'1단계 (당일 스캔)',tip:'본 학습 직후 목차·핵심 스캔'},
+ {k:'d1',off:1,short:'+1d',name:'+1일 즉시 재인출',tip:'10~15분'},
+ {k:'h2',off:2,short:'+2d',name:'+2일 (어려운 논점)',tip:'10분',hard:1},
+ {k:'d3',off:3,short:'+3d',name:'+3일 재인출',tip:'10분'},
+ {k:'step2',off:7,short:'7d',name:'2단계 (+7일 오답/목차)',tip:'10분'},
+ {k:'h10',off:10,short:'+10d',name:'+10일 (어려운 논점)',tip:'7분',hard:1},
+ {k:'step3',off:14,short:'14d',name:'3단계 (+14일 목차잡기)',tip:'5~7분'},
+ {k:'step4',off:30,short:'30d',name:'4단계 (+30일 장기소거)',tip:'3~5분'},
+ {k:'step5',off:60,short:'60d',name:'5단계 (+60일)',tip:'3~5분',ext:1},
+ {k:'step6',off:90,short:'90d',name:'6단계 (+90일)',tip:'3~5분',ext:1},
+ {k:'step7',off:150,short:'150d',name:'7단계 (+150일)',tip:'3~5분',ext:1},
+ {k:'exam1',off:-30,short:'D-30',name:'시험 D-30 총정리',tip:'약점 위주',exam:1,gap:30},
+ {k:'exam2',off:-14,short:'D-14',name:'시험 D-14 총정리',tip:'약점 위주',exam:1,gap:30},
+ {k:'exam3',off:-7,short:'D-7',name:'시험 D-7 최종점검',tip:'약점 위주',exam:1,gap:30},
+ {k:'exam4',off:-3,short:'D-3',name:'시험 D-3 최종 암기',tip:'약점 위주',exam:1,gap:7},
+ {k:'exam5',off:-1,short:'D-1',name:'시험 D-1 최종 점검',tip:'가볍게 훑기',exam:1,gap:7}
+];
+const RATING={good:{t:'기억남',e:'😀'},fuzzy:{t:'애매',e:'🤔'},forgot:{t:'망각',e:'😵'}};
+const RECALL={'실무':'백지에 산식·계산 과정을 직접 다시 풀어보기','이론':'목차·키워드만 떠올려 답안 구조를 백지에 재현','법규':'조문·판례 키워드를 백지에 먼저 인출'};
+
+const live=()=>tasks.filter(t=>!t.removed);
+function touch(t){t.updatedAt=Date.now();}
+function applies(d,t){const df=Number(t.difficulty)||2;if(d.hard)return df===3;if(d.k==='d1')return df>=2;return true;}
+function mkStep(raw){return{targetDate:raw,display:raw.slice(5).replace('-','/'),done:false};}
+
+/* 단계 생성/보정
+   full=true : 미완료 단계를 진도일 기준으로 처음부터 다시 계산 (등록·날짜 수정 시)
+   full=false: 기존 일정(재배치 결과)은 유지, 새로 생긴 단계/시험 단계만 보정 */
+function buildSteps(task,full){
+  const old=task.steps||{},out={},T0=today(),exLim=addDays(examDate,-14).raw;
+  STEPS.forEach(d=>{
+    const o=old[d.k];
+    if(o&&o.done){out[d.k]=o;return;}
+    if(!applies(d,task))return;
+    const base=d.exam?addDays(examDate,d.off).raw:addDays(task.date,d.off).raw;
+    if(d.exam){
+      if(base>addDays(task.date,d.gap).raw)out[d.k]=mkStep(base);
+      return;
+    }
+    if(o){
+      if(full){if(d.ext&&base>=exLim)return;out[d.k]=mkStep(base);}
+      else{if(d.ext&&o.targetDate>=exLim)return;out[d.k]=o;}
+    }else{
+      if(d.ext&&base>=exLim)return;
+      if(!full&&base<T0)return;   // 기존 논점에 과거 날짜 단계가 갑자기 밀린 복습으로 쏟아지는 것 방지
+      out[d.k]=mkStep(base);
+    }
+  });
+  task.steps=out;
+  enforceOrder(task);
+}
+/* 단계 순서 보장: 뒤 단계가 앞 단계보다 먼저 오지 않게 */
+function enforceOrder(task){
+  let prev=null;
+  STEPS.forEach(d=>{
+    if(d.exam)return;
+    const s=task.steps[d.k];if(!s)return;
+    if(!s.done&&prev&&s.targetDate<=prev){const n=addDays(prev,1);s.targetDate=n.raw;s.display=n.formatted;}
+    prev=s.done?(s.doneDate||s.targetDate):s.targetDate;
+  });
+}
+function normalize(){
+  const T0=today();
+  tasks=tasks.filter(t=>t&&t.id!=null);
+  tasks.forEach(t=>{
+    if(!t.steps)t.steps={};
+    if(!t.difficulty)t.difficulty=2;
+    if(t.updatedAt==null)t.updatedAt=0;
+    if(t.removed)return;
+    buildSteps(t,false);
+    Object.keys(t.steps).forEach(k=>{const s=t.steps[k];if(s.snap&&s.doneDate!==T0)delete s.snap;});
+  });
+}
+
+/* ===== 자가평가 → 일정 재계산 (완료일 기준 간격) ===== */
+function completeStep(id,k,rating){
+  const task=tasks.find(x=>x.id===id);if(!task)return;
+  const s=task.steps[k];if(!s)return;
+  const T0=today();
+  const snap={};
+  Object.keys(task.steps).forEach(key=>{const st=task.steps[key];if(!st.done)snap[key]={t:st.targetDate};});
+  s.done=true;s.doneDate=T0;s.rating=rating;s.snap=snap;
+  const def=STEPS.find(d=>d.k===k);
+  if(def&&!def.exam)rescheduleAfter(task,def,rating,T0);
+  touch(task);saveAndRender(true);
+}
+function rescheduleAfter(task,def,rating,T0){
+  const order=STEPS.filter(d=>!d.exam&&task.steps[d.k]);
+  const i=order.findIndex(d=>d.k===def.k);
+  const exLim=addDays(examDate,-14).raw;
+  let cursor=T0,prevOff=def.off,first=true;
+  for(let j=i+1;j<order.length;j++){
+    const d=order[j],st=task.steps[d.k];
+    if(st.done){cursor=st.doneDate||st.targetDate;prevOff=d.off;continue;}
+    let g=d.off-prevOff;
+    if(first){
+      first=false;
+      if(rating==='forgot')g=1;
+      else if(rating==='fuzzy')g=Math.max(1,Math.ceil(g*0.6));
+    }
+    const n=addDays(cursor,g);
+    if(d.ext&&n.raw>=exLim){delete task.steps[d.k];continue;}
+    st.targetDate=n.raw;st.display=n.formatted;cursor=n.raw;prevOff=d.off;
+  }
+}
+function undoStep(id,k){
+  const task=tasks.find(x=>x.id===id);if(!task)return;
+  const s=task.steps[k];if(!s)return;
+  if(s.snap){
+    Object.keys(s.snap).forEach(key=>{
+      if(key===k)return;
+      const v=s.snap[key];
+      if(!task.steps[key])task.steps[key]=mkStep(v.t);
+      const st=task.steps[key];
+      if(!st.done){st.targetDate=v.t;st.display=v.t.slice(5).replace('-','/');}
+    });
+  }
+  s.done=false;delete s.doneDate;delete s.rating;delete s.snap;
+  enforceOrder(task);touch(task);saveAndRender(true);
+}
+function moveStep(id,k,date){
+  const task=tasks.find(x=>x.id===id);if(!task||!task.steps[k])return;
+  const s=task.steps[k];s.targetDate=date;s.display=date.slice(5).replace('-','/');
+  enforceOrder(task);touch(task);
+}
+function lastRating(task){
+  let best=null;
+  STEPS.forEach((d,i)=>{
+    const s=task.steps[d.k];
+    if(s&&s.done&&s.rating){const key=(s.doneDate||'')+String(100+i);if(!best||key>best.key)best={key,r:s.rating};}
+  });
+  return best?best.r:null;
+}
+function isWeak(task){const r=lastRating(task);return r==='fuzzy'||r==='forgot';}
+
+/* ===== 오늘/밀린 복습 계산 ===== */
+function mkItem(task,d,s,T0){
+  const r=lastRating(task);
+  return{id:task.id,k:d.k,def:d,s,subject:task.subject,topic:task.topic,memo:task.monographMemo,name:d.name,
+    late:Math.max(0,diffDays(T0,s.targetDate)),done:!!s.done,rating:s.rating,diff:Number(task.difficulty)||2,lastR:r,
+    bed:(Number(task.difficulty)===3)||r==='fuzzy'||r==='forgot'};
+}
+function interleave(list){
+  const g={};list.forEach(i=>{(g[i.subject]=g[i.subject]||[]).push(i);});
+  const names=Object.keys(g),out=[];let more=true,n=0;
+  while(more){more=false;names.forEach(nm=>{if(g[nm][n]){out.push(g[nm][n]);more=true;}});n++;}
+  return out.sort((a,b)=>(a.bed?1:0)-(b.bed?1:0));
+}
+function computeItems(){
+  const T0=today(),od=[],td=[],dn=[],keyClass={};
+  live().forEach(task=>{
+    if(task.deleted)return;
+    let first=false,examPick=null;
+    STEPS.forEach(d=>{
+      const s=task.steps[d.k];if(!s)return;
+      if(s.done){if(s.doneDate===T0)dn.push(mkItem(task,d,s,T0));return;}
+      if(d.exam){if(T0>examDate)return;if(s.targetDate<=T0)examPick={d,s};return;}
+      if(first)return;first=true;
+      if(s.targetDate<=T0){const it=mkItem(task,d,s,T0);if(s.targetDate<T0){od.push(it);keyClass[task.id+'|'+d.k]='od';}else{td.push(it);keyClass[task.id+'|'+d.k]='td';}}
+    });
+    if(examPick){const it=mkItem(task,examPick.d,examPick.s,T0);if(examPick.s.targetDate<T0){od.push(it);keyClass[task.id+'|'+examPick.d.k]='od';}else{td.push(it);keyClass[task.id+'|'+examPick.d.k]='td';}}
+  });
+  od.sort((a,b)=>b.late-a.late);
+  ctx={od,td:interleave(td),dn,keyClass};
+}
+
+/* ===== 서식 편집기 ===== */
+const COLORS=['#0f172a','#dc2626','#2563eb','#16a34a','#d97706','#9333ea'];
+const COLOR_RE=/^(#[0-9a-f]{3,8}|rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\))$/i;
+document.querySelectorAll('.rte-bar').forEach(bar=>{
+  const id=bar.dataset.for;
+  bar.innerHTML='<button type="button" data-c="bold"><b>B</b></button>'+
+    COLORS.map(c=>`<button type="button" class="dot" data-c="foreColor" data-v="${c}" style="background:${c}"></button>`).join('')+
+    '<button type="button" data-c="removeFormat">서식해제</button>';
+  bar.addEventListener('mousedown',e=>e.preventDefault());
+  bar.addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;
+    document.getElementById(id).focus();
+    document.execCommand('styleWithCSS',false,true);
+    document.execCommand(b.dataset.c,false,b.dataset.v||null);
+  });
+});
+function cleanNode(node){
+  let o='';
+  node.childNodes.forEach(n=>{
+    if(n.nodeType===3){o+=escapeHtml(n.textContent);return;}
+    if(n.nodeType!==1)return;
+    const t=n.tagName;
+    if(t==='BR'){o+='\n';return;}
+    let inner=cleanNode(n);
+    if(t==='DIV'||t==='P'){if(o&&!o.endsWith('\n'))o+='\n';o+=inner;if(!o.endsWith('\n'))o+='\n';return;}
+    const bold=t==='B'||t==='STRONG'||/^(bold|[6-9]00)$/.test(n.style.fontWeight);
+    const c=(n.style.color||'').trim();
+    if(c&&COLOR_RE.test(c))inner=`<span style="color:${c}">${inner}</span>`;
+    if(bold)inner=`<b>${inner}</b>`;
+    o+=inner;
+  });
+  return o;
+}
+function getRich(id){
+  const el=document.getElementById(id);
+  if(!el.textContent.trim())return '';
+  return RICH+cleanNode(el).replace(/\n+$/,'');
+}
+function memoHtml(m){if(!m)return '';return m.startsWith(RICH)?m.slice(RICH.length):escapeHtml(m);}
+function setRich(id,m){document.getElementById(id).innerHTML=memoHtml(m);}
+
+/* ===== 공통 ===== */
+function setTodayLabel(){const n=new Date();document.getElementById('todayDate').innerText=`${n.getFullYear()}.${n.getMonth()+1}.${n.getDate()}`;}
+function updateDday(){
+  const diff=diffDays(examDate,today());
+  document.getElementById('dday').innerText=diff>=0?`D-${diff}`:`D+${-diff}`;
+}
+window.changeExamDate=function(){
+  const v=document.getElementById('examDate').value;if(!v)return;
+  examDate=v;sset(EXAM_KEY,v);
+  live().forEach(t=>buildSteps(t,false));updateDday();saveAndRender(false);
+};
+window.switchTab=function(id,btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  (btn||document.getElementById(id==='tab-master'?'btnTabMaster':'btnTabDaily')).classList.add('active');
+  document.getElementById(id).classList.add('active');
+};
+window.goReview=function(){
+  switchTab('tab-daily');
+  const el=document.getElementById('odBox').style.display!=='none'?document.getElementById('odBox'):document.getElementById('todayBox');
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+};
+function updateSyncUI(){
+  const dot=document.getElementById('syncDot'),text=document.getElementById('syncText'),btn=document.getElementById('syncBtn');
+  if(canSync()){dot.className='sync-dot connected';text.innerText='구글 드라이브 동기화 활성화됨';btn.style.display='inline-flex';}
+  else{dot.className='sync-dot';text.innerText='로컬 모드 (구글 연동 시 전 기기 자동 동기화)';btn.style.display='none';}
+}
+function saveAndRender(cloud=true){
+  sset(STORAGE_KEY,JSON.stringify(tasks));
+  computeItems();
+  renderTable();renderToday();renderDashboardAndMaster();updateAlert();
+  if(cloud&&canSync())pushToGoogleCloud();
+}
+
+/* ===== 동기화 (updatedAt 기준 병합: 덮어쓰기 방지) ===== */
+function mergeTasks(local,cloud){
+  const m={};
+  cloud.concat(local).forEach(t=>{
+    if(!t||t.id==null)return;
+    const c=m[t.id];
+    if(!c||(t.updatedAt||0)>=(c.updatedAt||0))m[t.id]=t;   // 동률이면 로컬 우선
+  });
+  const limit=90*864e5;
+  return Object.values(m).filter(t=>!(t.removed&&Date.now()-(t.updatedAt||0)>limit));
+}
+async function pushToGoogleCloud(){
+  if(!canSync())return;
+  const text=document.getElementById('syncText');
+  text.innerText='구글 드라이브 저장 중...';
+  try{
+    if(viaGAS())await gasCall('saveData',JSON.stringify(tasks));
+    else await fetch(syncUrl,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save',data:tasks})});
+    text.innerText='구글 드라이브 동기화 완료 ('+new Date().toLocaleTimeString()+')';
+  }catch(err){text.innerText='동기화 오류: '+((err&&err.message)||err||'인터넷 확인 필요');console.error(err);}
+}
+async function pullFromGoogleCloud(){
+  if(!canSync())return;
+  const text=document.getElementById('syncText');
+  text.innerText='구글 드라이브 데이터 가져오는 중...';
+  lastPull=Date.now();
+  try{
+    let cloud;
+    if(viaGAS())cloud=JSON.parse(await gasCall('loadData')||'[]');
+    else{const res=await fetch(syncUrl+'?action=load');cloud=await res.json();}
+    if(Array.isArray(cloud)){
+      const before=JSON.stringify(cloud);
+      tasks=mergeTasks(tasks,cloud);normalize();
+      saveAndRender(false);
+      text.innerText='동기화 완료 ('+new Date().toLocaleTimeString()+')';
+      if(JSON.stringify(tasks)!==before)pushToGoogleCloud();
+    }else text.innerText='불러온 데이터 형식이 올바르지 않습니다';
+  }catch(err){text.innerText='데이터 불러오기 실패: '+((err&&err.message)||err||'네트워크 확인');console.error(err);}
+}
+function manualSync(){pullFromGoogleCloud();}
+
+/* ===== 등록 ===== */
+document.getElementById('studyForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const t={
+    id:Date.now(),
+    date:document.getElementById('studyDate').value,
+    subject:document.getElementById('subject').value,
+    difficulty:Number(document.getElementById('difficulty').value),
+    topic:document.getElementById('topic').value,
+    monographMemo:getRich('monographMemo'),
+    book:document.getElementById('targetBook').value,
+    steps:{},deleted:false,updatedAt:Date.now()
+  };
+  buildSteps(t,true);
+  tasks.unshift(t);
+  saveAndRender(true);
+  document.getElementById('topic').value='';
+  document.getElementById('monographMemo').innerHTML='';
+  document.getElementById('targetBook').value='';
+});
+
+/* ===== 렌더 ===== */
+function stars(n){return '<span class="stars">'+'★'.repeat(n)+'</span>';}
+
+function chipsHtml(task){
+  return STEPS.filter(d=>task.steps[d.k]).map(d=>{
+    const s=task.steps[d.k];
+    const kc=ctx.keyClass[task.id+'|'+d.k];
+    let cls='chip'+(d.exam?' ex':'');
+    if(s.done)cls+=' done r-'+(s.rating||'good');
+    else if(kc==='od')cls+=' od';
+    else if(kc==='td')cls+=' td';
+    const em=s.done?(s.rating?RATING[s.rating].e:'✓'):'';
+    return `<div class="${cls}" onclick="chipClick(${task.id},'${d.k}')" title="${d.name}"><span>${d.short} ${em}</span><small>${d.k==='step1'?'&nbsp;':s.display}</small></div>`;
+  }).join('');
+}
+
+function renderTable(){
+  const tbody=document.getElementById('trackerBody');
+  const f=document.getElementById('filterSubject').value;
+  const odIds=new Set(ctx.od.map(i=>i.id));
+  let list=live();
+  if(f==='WEAK')list=list.filter(t=>!t.deleted&&isWeak(t));
+  else if(f==='OVERDUE')list=list.filter(t=>odIds.has(t.id));
+  else if(f!=='ALL')list=list.filter(t=>t.subject===f);
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="7" class="center" style="color:#94a3b8;padding:30px;">${f==='ALL'?'기록된 진도가 없습니다.':'해당 조건의 논점이 없습니다.'}</td></tr>`;return;}
+  tbody.innerHTML=list.map(task=>{
+    const del=task.deleted,lr=lastRating(task);
+    return `<tr style="${del?'opacity:.4;background:#f8fafc;':''}">
+      <td class="center">${task.date.slice(5)}</td>
+      <td class="center"><span class="tag tag-${task.subject}">${task.subject}</span></td>
+      <td><div class="cell-topic" style="${del?'text-decoration:line-through;':''}">${escapeHtml(task.topic)}</div>${stars(Number(task.difficulty)||2)} ${lr?`<span class="rtag r-${lr}">${RATING[lr].e} ${RATING[lr].t}</span>`:''}${task.book?`<div class="cell-target">교재: ${escapeHtml(task.book)}</div>`:''}</td>
+      <td>${task.monographMemo?`<div class="cell-memo">${memoHtml(task.monographMemo)}</div>`:'<span style="color:#cbd5e1;">-</span>'}</td>
+      <td><div class="chips">${chipsHtml(task)}</div></td>
+      <td class="center"><label class="step-check" style="color:#ef4444;"><input type="checkbox" ${del?'checked':''} onchange="toggleDelete(${task.id})"><span>소거</span></label></td>
+      <td class="center"><div class="action-btns"><button class="edit-btn" onclick="openEditModal(${task.id})">수정</button><button class="delete-btn" onclick="removeTask(${task.id})">×</button></div></td>
+    </tr>`;
+  }).join('');
+}
+
+function itemHtml(i){
+  if(i.done){
+    const r=i.rating?`<span class="rtag r-${i.rating}">${RATING[i.rating].e} ${RATING[i.rating].t}</span>`:'';
+    return `<li class="today-item done"><div class="ti-main"><span class="tag tag-${i.subject}">${i.subject}</span> <strong>[${i.name}]</strong> ${escapeHtml(i.topic)}</div>
+      <div class="ti-btns">${r}<button class="rbtn plain" onclick="undoStep(${i.id},'${i.k}')">되돌리기</button></div></li>`;
+  }
+  const memo=i.memo?`<details class="memo-d"><summary>👀 메모 확인 (먼저 백지에 인출해보세요)</summary><div class="memo-in">${memoHtml(i.memo)}</div></details>`:'';
+  const light=i.def.off>=90&&!i.def.exam&&i.lastR==='good'?' · 기억남 연속이면 가볍게 훑기/생략 가능':'';
+  return `<li class="today-item"><div class="ti-main">
+      <div><span class="tag tag-${i.subject}">${i.subject}</span> ${i.late?`<span class="late">D+${i.late}</span> `:''}<strong>[${i.name}]</strong> ${escapeHtml(i.topic)} ${stars(i.diff)} ${i.bed?'<span class="bed">🌙 취침 전 추천</span>':''}</div>
+      <div class="tip">✍️ ${RECALL[i.subject]||''} · ⏱ ${i.def.tip||''}${light}</div>${memo}</div>
+    <div class="ti-btns">
+      <button class="rbtn r-good" onclick="completeStep(${i.id},'${i.k}','good')">😀 기억남</button>
+      <button class="rbtn r-fuzzy" onclick="completeStep(${i.id},'${i.k}','fuzzy')">🤔 애매</button>
+      <button class="rbtn r-forgot" onclick="completeStep(${i.id},'${i.k}','forgot')">😵 망각</button>
+      <button class="rbtn plain" onclick="openEditModal(${i.id})">✏️</button>
+    </div></li>`;
+}
+
+function renderToday(){
+  const f=document.getElementById('todayFilter').value;
+  const pass=i=>f==='ALL'||i.subject===f;
+  const od=ctx.od.filter(pass),td=ctx.td.filter(pass),dn=ctx.dn.filter(pass);
+  const box=document.getElementById('odBox');
+  if(od.length){
+    box.style.display='block';
+    document.getElementById('odTitle').innerText=`🚨 밀린 복습 ${od.length}개 · 가장 오래 밀린 순`;
+    document.getElementById('odList').innerHTML=od.map(itemHtml).join('');
+  }else box.style.display='none';
+  const total=ctx.od.length+ctx.td.length;
+  const cw=document.getElementById('capWarn');
+  if(ctx.od.length&&total>dailyCap){cw.style.display='block';cw.innerText=`⚠️ 처리할 복습이 ${total}개로 하루 목표량(${dailyCap}개)을 넘었어요. "하루 목표량으로 분산"을 누르면 오래된 것부터 목표량씩 나눠 재배치합니다.`;}
+  else cw.style.display='none';
+
+  const all=dn.length+td.length;
+  document.getElementById('todayProg').innerText=`${dn.length}/${all} 완료`;
+  document.getElementById('todayBar').style.width=(all?Math.round(dn.length/all*100):0)+'%';
+  const list=document.getElementById('todayTaskList');
+  if(!all){list.innerHTML=`<li style="color:#64748b;font-size:12px;">오늘 예정된 복습 일정이 없습니다. 완벽합니다! 🎉</li>`;return;}
+  let html=td.map(itemHtml).join('')+dn.map(itemHtml).join('');
+  if(!td.length&&dn.length)html=`<li style="color:#166534;font-size:12.5px;font-weight:700;">🎉 오늘 복습을 모두 끝냈어요!</li>`+html;
+  list.innerHTML=html;
+}
+
+function calcStreak(){
+  const days=new Set();
+  live().forEach(t=>Object.keys(t.steps).forEach(k=>{const s=t.steps[k];if(s.done&&s.doneDate)days.add(s.doneDate);}));
+  let d=today(),n=0;
+  if(!days.has(d))d=addDays(d,-1).raw;
+  while(days.has(d)){n++;d=addDays(d,-1).raw;}
+  return n;
+}
+
+function renderDashboardAndMaster(){
+  const L=live();
+  document.getElementById('statTotal').innerText=`${L.length}개`;
+  document.getElementById('statTotalValue').innerHTML=`${L.length}<span>개</span>`;
+  const keys={'실무':'Simmu','이론':'Yiron','법규':'Beopgyu'};
+  const counts={'실무':{t:0,d:0},'이론':{t:0,d:0},'법규':{t:0,d:0}};
+  L.forEach(t=>{if(counts[t.subject]){counts[t.subject].t++;if(t.deleted)counts[t.subject].d++;}});
+  const odIds=new Set(ctx.od.map(i=>i.id));
+  Object.keys(keys).forEach(sub=>{
+    const c=counts[sub],p=c.t?Math.round(c.d/c.t*100):0,k=keys[sub];
+    document.getElementById(`stat${k}Percent`).innerText=`소거율 ${p}%`;
+    document.getElementById(`stat${k}Value`).innerHTML=`${c.d}<span>/${c.t}개</span>`;
+    document.getElementById(`bar${k}`).style.width=`${p}%`;
+    document.getElementById(`badge${k}Count`).innerText=`${c.d}/${c.t}개`;
+    const subTasks=L.filter(t=>t.subject===sub);
+    document.getElementById(`master${k}List`).innerHTML=subTasks.length?subTasks.map(t=>{
+      const lr=lastRating(t);
+      return `<li class="master-item" style="${t.deleted?'opacity:.6;background:#f1f5f9;':''}">
+        <div class="master-item-title"><span style="${t.deleted?'text-decoration:line-through;':''}">${escapeHtml(t.topic)} ${stars(Number(t.difficulty)||2)}</span>
+          <div style="display:flex;gap:6px;align-items:center;"><span style="font-size:10.5px;color:#64748b;">${t.date.slice(5)}</span><button class="edit-btn" onclick="openEditModal(${t.id})" style="padding:1px 5px;font-size:10px;">수정</button></div></div>
+        ${t.monographMemo?`<div class="master-item-memo">${memoHtml(t.monographMemo)}</div>`:''}
+        <div class="master-badges">${STEPS.filter(d=>t.steps[d.k]).map(d=>{const s=t.steps[d.k];const kc=ctx.keyClass[t.id+'|'+d.k];return `<span class="mbadge ${s.done?(s.rating==='fuzzy'?'r-fuzzy':s.rating==='forgot'?'r-forgot':'active'):(kc==='od'?'od':'')}">${d.short}</span>`;}).join('')}${lr&&(lr==='fuzzy'||lr==='forgot')?`<span class="rtag r-${lr}">약점 ${RATING[lr].e}</span>`:''}${t.deleted?'<span class="mbadge deleted">소거완료</span>':''}</div>
+      </li>`;}).join(''):`<li style="font-size:11.5px;color:#94a3b8;text-align:center;padding:15px;">등록된 진도가 없습니다.</li>`;
+  });
+  /* 신규 지표 */
+  const total=ctx.od.length+ctx.td.length+ctx.dn.length;
+  const rate=total?Math.round(ctx.dn.length/total*100):0;
+  document.getElementById('statRatePct').innerText=total?rate+'%':'-';
+  document.getElementById('statRateValue').innerHTML=`${ctx.dn.length}<span>/${total}개</span>`;
+  document.getElementById('barRate').style.width=rate+'%';
+  document.getElementById('barRate').style.background=rate>=100?'#22c55e':'var(--primary-light)';
+  document.getElementById('statStreak').innerHTML=`${calcStreak()}<span>일</span>`;
+  const od=ctx.od.length;
+  document.getElementById('statOverdue').innerHTML=`${od}<span>개</span>`;
+  document.getElementById('statOdHint').innerText=od?`최대 D+${ctx.od[0].late}`:'';
+  document.getElementById('cardOverdue').className='stat-card'+(od?' alert':'');
+  document.getElementById('barOd').style.width=Math.min(100,od*5)+'%';
+  const weak=L.filter(t=>!t.deleted&&isWeak(t)).length;
+  const active=L.filter(t=>!t.deleted).length;
+  document.getElementById('statWeak').innerHTML=`${weak}<span>개</span>`;
+  document.getElementById('barWeak').style.width=(active?Math.round(weak/active*100):0)+'%';
+}
+
+/* ===== 상시 알림 바 / 제목 / 브라우저 알림 ===== */
+function updateAlert(){
+  const od=ctx.od.length,td=ctx.td.length,pend=od+td;
+  const bar=document.getElementById('alertBar');
+  if(od>0){
+    bar.style.display='flex';bar.className='alert-bar danger';
+    bar.innerHTML=`<span>🚨 밀린 복습 ${od}개 (최대 D+${ctx.od[0].late}) · 오늘 복습 ${td}개 남음</span><button onclick="goReview()">지금 처리하기</button>`;
+  }else if(td>0){
+    bar.style.display='flex';bar.className='alert-bar warn';
+    bar.innerHTML=`<span>📌 오늘 복습 ${td}개 남음</span><button onclick="goReview()">복습하러 가기</button>`;
+  }else if(ctx.dn.length>0){
+    bar.style.display='flex';bar.className='alert-bar ok';
+    bar.innerHTML=`<span>🎉 오늘 복습 완료! 밀린 복습 없음 (연속 ${calcStreak()}일)</span>`;
+  }else bar.style.display='none';
+  document.title=pend>0?`(${pend}) ${BASE_TITLE}`:BASE_TITLE;
+}
+function notifyNow(force){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  const pend=ctx.od.length+ctx.td.length;if(!pend)return;
+  const h=new Date().getHours();if(!force&&(h<7||h>=24))return;
+  const last=Number(sget(NOTIFY_KEY)||0);
+  if(!force&&Date.now()-last<40*60*1000)return;
+  sset(NOTIFY_KEY,String(Date.now()));
+  try{new Notification('📚 복습할 시간이에요',{body:`밀린 복습 ${ctx.od.length}개 · 오늘 복습 ${ctx.td.length}개`,tag:'kapa-review'});}catch(e){}
+}
+function rollover(){
+  const t=today();
+  if(t!==lastDay){lastDay=t;setTodayLabel();updateDday();document.getElementById('studyDate').value=t;saveAndRender(false);}
+}
+setInterval(()=>{rollover();notifyNow(false);},60*1000);
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState!=='visible')return;
+  rollover();
+  if(canSync()&&Date.now()-lastPull>60*1000)pullFromGoogleCloud();
+  notifyNow(false);
+});
+
+/* ===== 밀린 복습 재배치 ===== */
+window.reschedule=function(mode){
+  computeItems();
+  const od=ctx.od.slice();if(!od.length)return;
+  const T0=today();
+  if(mode==='today'){
+    if(!confirm(`밀린 복습 ${od.length}개를 모두 오늘로 옮길까요?`))return;
+    od.forEach(i=>moveStep(i.id,i.k,T0));
+  }else{
+    if(!confirm(`밀린 복습 ${od.length}개를 하루 ${dailyCap}개 기준으로 오늘부터 분산 배치할까요? (오래된 것 우선)`))return;
+    const cnt={};
+    live().forEach(t=>{if(t.deleted)return;Object.keys(t.steps).forEach(k=>{const s=t.steps[k];if(!s.done&&s.targetDate>=T0)cnt[s.targetDate]=(cnt[s.targetDate]||0)+1;});});
+    let day=T0;
+    od.forEach(i=>{
+      while((cnt[day]||0)>=dailyCap)day=addDays(day,1).raw;
+      moveStep(i.id,i.k,day);cnt[day]=(cnt[day]||0)+1;
+    });
+  }
+  saveAndRender(true);
+};
+
+/* ===== 평가 모달 / 칩 클릭 ===== */
+window.chipClick=function(id,k){
+  const t=tasks.find(x=>x.id===id);if(!t||!t.steps[k])return;
+  const s=t.steps[k],def=STEPS.find(d=>d.k===k);
+  if(s.done){if(confirm(`[${def.name}] 완료를 되돌릴까요?`))undoStep(id,k);return;}
+  document.getElementById('rateId').value=id;document.getElementById('rateK').value=k;
+  document.getElementById('rateInfo').innerHTML=`<b>[${def.name}]</b><br>${escapeHtml(t.topic)}`;
+  document.getElementById('rateModal').style.display='flex';
+};
+window.rateChoose=function(r){
+  const id=Number(document.getElementById('rateId').value),k=document.getElementById('rateK').value;
+  closeRate();completeStep(id,k,r);
+};
+window.closeRate=function(){document.getElementById('rateModal').style.display='none';};
+
+/* ===== 브리핑 ===== */
+function maybeBrief(){
+  const od=ctx.od.length,td=ctx.td.length;
+  if(od+td===0||ssget('kapa_brief'))return;
+  ssset('kapa_brief','1');
+  document.getElementById('briefBody').innerHTML=
+    (od?`🚨 밀린 복습 <b style="color:#dc2626">${od}개</b> (가장 오래된 것 D+${ctx.od[0].late})<br>`:'')+
+    `📌 오늘 복습 <b>${td}개</b><br>`+
+    (od+td>dailyCap?`<span style="font-size:12px;color:#9a3412">⚠️ 목표량(${dailyCap}개) 초과 — 분산 재배치를 추천해요</span><br>`:'')+
+    `<span style="font-size:12px;color:#64748b">복습 전에 메모를 먼저 가리고 백지에 써보세요.</span>`;
+  document.getElementById('briefModal').style.display='flex';
+}
+window.closeBrief=function(){document.getElementById('briefModal').style.display='none';};
+
+/* ===== 설정 / 알림 / 캘린더 ===== */
+function notifStateText(){
+  if(!('Notification' in window))return '이 브라우저는 알림을 지원하지 않습니다.';
+  return {granted:'✅ 알림 허용됨',denied:'⛔ 차단됨 (브라우저 주소창 자물쇠 → 알림 허용으로 변경)',default:'아직 허용하지 않았습니다.'}[Notification.permission];
+}
+window.openSettings=function(){
+  document.getElementById('capInput').value=dailyCap;
+  document.getElementById('ics1').value=sget(ICS1_KEY)||'08:00';
+  document.getElementById('ics2').value=sget(ICS2_KEY)||'21:00';
+  document.getElementById('notifState').innerText=notifStateText();
+  document.getElementById('settingsModal').style.display='flex';
+};
+window.closeSettings=function(){document.getElementById('settingsModal').style.display='none';};
+window.saveSettings=function(){
+  const c=Number(document.getElementById('capInput').value);
+  if(c>=5){dailyCap=c;sset(CAP_KEY,String(c));}
+  sset(ICS1_KEY,document.getElementById('ics1').value);
+  sset(ICS2_KEY,document.getElementById('ics2').value);
+  closeSettings();saveAndRender(false);
+};
+window.requestNotify=function(){
+  if(!('Notification' in window)){alert('이 브라우저는 알림을 지원하지 않습니다.');return;}
+  Notification.requestPermission().then(()=>{document.getElementById('notifState').innerText=notifStateText();notifyNow(true);});
+};
+function icsLocal(d){return ymd(d).replace(/-/g,'')+'T'+String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+'00';}
+window.downloadICS=function(){
+  if(examDate<today()){alert('시험일이 이미 지났습니다. 시험일을 먼저 확인해주세요.');return;}
+  const times=[document.getElementById('ics1').value,document.getElementById('ics2').value].filter(Boolean);
+  const stamp=new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  const until=examDate.replace(/-/g,'')+'T235959';
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//KAPA Review Planner//KO','CALSCALE:GREGORIAN'];
+  times.forEach((t,idx)=>{
+    const p=t.split(':').map(Number);
+    const st=new Date();st.setHours(p[0],p[1],0,0);
+    const en=new Date(st.getTime()+20*60000);
+    L.push('BEGIN:VEVENT','UID:kapa-review-'+idx+'-'+Date.now()+'@kapa','DTSTAMP:'+stamp,
+      'DTSTART:'+icsLocal(st),'DTEND:'+icsLocal(en),'RRULE:FREQ=DAILY;UNTIL='+until,
+      'SUMMARY:📚 복습 확인 (밀린 복습 체크!)','DESCRIPTION:복습 플래너를 열어 밀린 복습과 오늘 복습을 처리하세요.',
+      'BEGIN:VALARM','TRIGGER:-PT0M','ACTION:DISPLAY','DESCRIPTION:복습 확인','END:VALARM','END:VEVENT');
+  });
+  L.push('END:VCALENDAR');
+  const blob=new Blob([L.join('\r\n')],{type:'text/calendar;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kapa_review_reminder.ics';
+  document.body.appendChild(a);a.click();a.remove();
+};
+
+/* ===== 수정 ===== */
+window.openEditModal=function(id){
+  const t=tasks.find(x=>x.id===id);if(!t)return;
+  document.getElementById('editTaskId').value=t.id;
+  document.getElementById('editDate').value=t.date;
+  document.getElementById('editSubject').value=t.subject;
+  document.getElementById('editDifficulty').value=String(t.difficulty||2);
+  document.getElementById('editTopic').value=t.topic;
+  setRich('editMonographMemo',t.monographMemo);
+  document.getElementById('editTargetBook').value=t.book||'';
+  document.getElementById('editModal').style.display='flex';
+};
+window.closeEditModal=function(){document.getElementById('editModal').style.display='none';};
+document.getElementById('editForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const t=tasks.find(x=>x.id===Number(document.getElementById('editTaskId').value));if(!t)return;
+  const nd=document.getElementById('editDate').value,ndf=Number(document.getElementById('editDifficulty').value);
+  const changed=t.date!==nd||(Number(t.difficulty)||2)!==ndf;
+  t.date=nd;t.difficulty=ndf;
+  t.subject=document.getElementById('editSubject').value;
+  t.topic=document.getElementById('editTopic').value;
+  t.monographMemo=getRich('editMonographMemo');
+  t.book=document.getElementById('editTargetBook').value;
+  if(changed)buildSteps(t,true);
+  touch(t);saveAndRender(true);closeEditModal();
+});
+
+/* ===== 출력 ===== */
+window.openPdfModal=function(){document.getElementById('pdfModal').style.display='flex';};
+window.closePdfModal=function(){document.getElementById('pdfModal').style.display='none';};
+window.executePrint=function(mode){
+  closePdfModal();
+  document.body.classList.remove('print-tab-all','print-tab-daily','print-tab-master');
+  document.body.classList.add('print-tab-'+mode);
+  const d=new Date();
+  document.getElementById('printHeaderInfo').innerText=`출력일시: ${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()} ${d.toLocaleTimeString()}`;
+  setTimeout(()=>window.print(),150);
+};
+
+window.toggleDelete=function(id){const t=tasks.find(x=>x.id===id);if(t){t.deleted=!t.deleted;touch(t);saveAndRender(true);}};
+window.removeTask=function(id){if(confirm('해당 진도 기록을 삭제하시겠습니까?')){const t=tasks.find(x=>x.id===id);if(t){t.removed=true;touch(t);}saveAndRender(true);}};
+document.getElementById('clearAll').addEventListener('click',()=>{if(confirm('모든 기록을 초기화하시겠습니까? (복구 불가능)')){tasks.forEach(t=>{t.removed=true;touch(t);});saveAndRender(true);}});
+
+function openSyncModal(){document.getElementById('scriptUrlInput').value=syncUrl;document.getElementById('syncModal').style.display='flex';}
+function closeSyncModal(){document.getElementById('syncModal').style.display='none';}
+function saveSyncConfig(){
+  syncUrl=document.getElementById('scriptUrlInput').value.trim();
+  sset(CONFIG_KEY,syncUrl);updateSyncUI();closeSyncModal();
+  if(syncUrl)pullFromGoogleCloud();
+}
+
+function exportJSON(){
+  const a=document.createElement('a');
+  a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(live(),null,2));
+  a.download=`kapa_study_backup_${today()}.json`;
+  document.body.appendChild(a);a.click();a.remove();
+}
+function importJSON(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const d=JSON.parse(e.target.result);
+      if(Array.isArray(d)){
+        if(!confirm('현재 데이터를 이 백업 파일 내용으로 교체합니다. 계속할까요?'))return;
+        const ids=new Set(d.map(x=>x.id));
+        tasks.forEach(t=>{if(!ids.has(t.id)){t.removed=true;touch(t);}});
+        const now=Date.now();
+        d.forEach(x=>{x.updatedAt=now;x.removed=false;const i=tasks.findIndex(t=>t.id===x.id);if(i>=0)tasks[i]=x;else tasks.push(x);});
+        normalize();saveAndRender(true);alert('데이터 복원이 완료되었습니다!');
+      }else alert('올바른 백업 파일 형식이 아닙니다.');
+    }catch(err){alert('파일을 읽는 도중 오류가 발생했습니다.');}
+  };
+  r.readAsText(f);
+  ev.target.value='';
+}
+
+function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+
+/* ===== 시작 ===== */
+lastDay=today();
+document.getElementById('studyDate').value=lastDay;
+document.getElementById('examDate').value=examDate;
+setTodayLabel();
+normalize();
+updateDday();updateSyncUI();saveAndRender(false);
+setTimeout(()=>{maybeBrief();notifyNow(false);},600);
+if(canSync())pullFromGoogleCloud();
+</script>
+</body>
+</html>
